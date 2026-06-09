@@ -1,0 +1,25 @@
+{
+  "name": "creditcardcompanyvoiceaiagent",
+  "version": "1.0.0",
+  "description": "Agente AI per la gestione delle carte di credito su piattaforma Wonderful",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Siron69/CreditCardCompanyVoiceAIAgent.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@wonderful/test": "^0.1.12",
+    "@wonderful/types": "^0.1.15",
+    "vitest": "^4.1.8"
+  },
+  "bugs": {
+    "url": "https://github.com/Siron69/CreditCardCompanyVoiceAIAgent/issues"
+  },
+  "homepage": "https://github.com/Siron69/CreditCardCompanyVoiceAIAgent#readme"
+}
