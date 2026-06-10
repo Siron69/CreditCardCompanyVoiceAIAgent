@@ -1,0 +1,50 @@
+{
+  "inputs": {
+    "node_modules/@wonderful/types/dist/schema.js": {
+      "bytes": 11264,
+      "imports": [],
+      "format": "cjs"
+    },
+    "src/skills/account-servicing/tools/update-contact.ts": {
+      "bytes": 2033,
+      "imports": [
+        {
+          "path": "node_modules/@wonderful/types/dist/schema.js",
+          "kind": "import-statement",
+          "original": "@wonderful/types/schema"
+        }
+      ],
+      "format": "esm"
+    },
+    "dist/__update_contact_wrapper.ts": {
+      "bytes": 650,
+      "imports": [
+        {
+          "path": "src/skills/account-servicing/tools/update-contact.ts",
+          "kind": "import-statement",
+          "original": "/home/simone/CreditCardCompanyVoiceAIAgent/src/skills/account-servicing/tools/update-contact.ts"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "dist/update_contact.bundle.js": {
+      "imports": [],
+      "exports": [],
+      "entryPoint": "dist/__update_contact_wrapper.ts",
+      "inputs": {
+        "node_modules/@wonderful/types/dist/schema.js": {
+          "bytesInOutput": 8736
+        },
+        "src/skills/account-servicing/tools/update-contact.ts": {
+          "bytesInOutput": 2099
+        },
+        "dist/__update_contact_wrapper.ts": {
+          "bytesInOutput": 173
+        }
+      },
+      "bytes": 12471
+    }
+  }
+}

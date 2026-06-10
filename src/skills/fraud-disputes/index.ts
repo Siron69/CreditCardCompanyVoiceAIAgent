@@ -8,7 +8,7 @@ import reportSuspiciousTransaction from "./tools/report-suspicious-transaction";
 export default w.skill({
   name: "fraud-disputes",
   description:
-    "Gestisce segnalazioni frode, blocco/sblocco carta, dispute su transazioni e alert sicurezza.",
+    "Handles fraud reports, card block/unblock requests, transaction disputes, and security alerts.",
   prompt: "src/skills/fraud-disputes/prompt.md",
   tools: [authenticateCustomer, blockCard, requestCardUnblock, checkUnblockStatus, reportSuspiciousTransaction],
 });

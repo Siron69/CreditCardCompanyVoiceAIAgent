@@ -1,0 +1,50 @@
+{
+  "inputs": {
+    "node_modules/@wonderful/types/dist/schema.js": {
+      "bytes": 11264,
+      "imports": [],
+      "format": "cjs"
+    },
+    "src/skills/fraud-disputes/tools/report-suspicious-transaction.ts": {
+      "bytes": 1939,
+      "imports": [
+        {
+          "path": "node_modules/@wonderful/types/dist/schema.js",
+          "kind": "import-statement",
+          "original": "@wonderful/types/schema"
+        }
+      ],
+      "format": "esm"
+    },
+    "dist/__report_suspicious_transaction_wrapper.ts": {
+      "bytes": 662,
+      "imports": [
+        {
+          "path": "src/skills/fraud-disputes/tools/report-suspicious-transaction.ts",
+          "kind": "import-statement",
+          "original": "/home/simone/CreditCardCompanyVoiceAIAgent/src/skills/fraud-disputes/tools/report-suspicious-transaction.ts"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "dist/report_suspicious_transaction.bundle.js": {
+      "imports": [],
+      "exports": [],
+      "entryPoint": "dist/__report_suspicious_transaction_wrapper.ts",
+      "inputs": {
+        "node_modules/@wonderful/types/dist/schema.js": {
+          "bytesInOutput": 8736
+        },
+        "src/skills/fraud-disputes/tools/report-suspicious-transaction.ts": {
+          "bytesInOutput": 1984
+        },
+        "dist/__report_suspicious_transaction_wrapper.ts": {
+          "bytesInOutput": 188
+        }
+      },
+      "bytes": 12398
+    }
+  }
+}

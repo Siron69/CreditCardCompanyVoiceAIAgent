@@ -1,0 +1,50 @@
+{
+  "inputs": {
+    "node_modules/@wonderful/types/dist/schema.js": {
+      "bytes": 11264,
+      "imports": [],
+      "format": "cjs"
+    },
+    "src/skills/rewards-redemption/tools/get-rewards-balance.ts": {
+      "bytes": 1921,
+      "imports": [
+        {
+          "path": "node_modules/@wonderful/types/dist/schema.js",
+          "kind": "import-statement",
+          "original": "@wonderful/types/schema"
+        }
+      ],
+      "format": "esm"
+    },
+    "dist/__get_rewards_balance_wrapper.ts": {
+      "bytes": 656,
+      "imports": [
+        {
+          "path": "src/skills/rewards-redemption/tools/get-rewards-balance.ts",
+          "kind": "import-statement",
+          "original": "/home/simone/CreditCardCompanyVoiceAIAgent/src/skills/rewards-redemption/tools/get-rewards-balance.ts"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "dist/get_rewards_balance.bundle.js": {
+      "imports": [],
+      "exports": [],
+      "entryPoint": "dist/__get_rewards_balance_wrapper.ts",
+      "inputs": {
+        "node_modules/@wonderful/types/dist/schema.js": {
+          "bytesInOutput": 8736
+        },
+        "src/skills/rewards-redemption/tools/get-rewards-balance.ts": {
+          "bytesInOutput": 1958
+        },
+        "dist/__get_rewards_balance_wrapper.ts": {
+          "bytesInOutput": 178
+        }
+      },
+      "bytes": 12346
+    }
+  }
+}

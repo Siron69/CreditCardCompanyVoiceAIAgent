@@ -7,7 +7,7 @@ import redeemRewards from "./tools/redeem-rewards";
 export default w.skill({
   name: "rewards-redemption",
   description:
-    "Gestisce il programma fedeltà SpaceCard: saldo punti, catalogo premi, riscatti. Richiede autenticazione.",
+    "Manages the SpaceCard loyalty programme: points balance, rewards catalog, redemptions. Requires authentication.",
   prompt: "src/skills/rewards-redemption/prompt.md",
   tools: [authenticateCustomer, getRewardsBalance, getRewardsCatalog, redeemRewards],
 });

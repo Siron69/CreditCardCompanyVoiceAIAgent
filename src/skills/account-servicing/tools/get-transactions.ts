@@ -3,21 +3,26 @@ import { s, w } from "@wonderful/types/schema";
 export default w.tool({
   name: "get-transactions",
   description:
-    "Recupera le transazioni recenti del cliente autenticato. Può filtrare per stato.",
+    "Retrieves recent transactions for the authenticated customer. Can filter by status.",
   params: s.object({
-    limit: s.optional(s.number()).describe("Numero massimo di transazioni (default: 10)"),
-    status_filter: s.optional(s.string()).describe("Filtra per stato: completata, in_attesa, contestata, frode"),
+    limit: s.optional(s.number()).describe("Maximum number of transactions to return (default: 10)"),
+    status_filter: s.optional(s.string()).describe("Filter by status: completed, pending, disputed, fraud"),
   }),
   handler: async (ctx, params) => {
+    try {
     const customerId = ctx.kv.get("authenticated_customer_id") as string;
     if (!customerId) {
-      return { success: false, message: "Cliente non autenticato. Esegui prima l'autenticazione." };
+      return { success: false, message: "Customer not authenticated. Please authenticate first." };
     }
 
     const apiUrl = ctx.globals.get("api_base_url") as string;
-    const response = await fetch(`${apiUrl}/getTransactions`, {
+    const rawSecret = ctx.secrets.get("WONDERFUL_SECRET_API_KEY");
+    const apiKey = typeof rawSecret === "object" && rawSecret !== null
+      ? (rawSecret as { value: string }).value
+      : rawSecret as string;
+    const response = await fetch(`${apiUrl}/gettransactions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-api-key": apiKey },
       body: JSON.stringify({
         customer_id: customerId,
         limit: params.limit ?? 10,
@@ -26,10 +31,17 @@ export default w.tool({
     });
 
     if (!response.ok) {
-      return { success: false, message: "Errore nel recupero delle transazioni. Riprova." };
+      return { success: false, message: "Error retrieving transactions. Please try again." };
     }
 
     const data = await response.json();
     return { success: true, transactions: data.transactions ?? [] };
+    } catch (err) {
+      ctx.agent.sendSystemMessage("Unhandled error in get-transactions. Offer to transfer to a human agent.");
+      return {
+        success: false,
+        message: "An unexpected error occurred. I'm transferring you to a human agent who can assist you.",
+      };
+    }
   },
 });

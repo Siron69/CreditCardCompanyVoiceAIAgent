@@ -1,0 +1,50 @@
+{
+  "inputs": {
+    "node_modules/@wonderful/types/dist/schema.js": {
+      "bytes": 11264,
+      "imports": [],
+      "format": "cjs"
+    },
+    "src/skills/fraud-disputes/tools/block-card.ts": {
+      "bytes": 2421,
+      "imports": [
+        {
+          "path": "node_modules/@wonderful/types/dist/schema.js",
+          "kind": "import-statement",
+          "original": "@wonderful/types/schema"
+        }
+      ],
+      "format": "esm"
+    },
+    "dist/__block_card_wrapper.ts": {
+      "bytes": 643,
+      "imports": [
+        {
+          "path": "src/skills/fraud-disputes/tools/block-card.ts",
+          "kind": "import-statement",
+          "original": "/home/simone/CreditCardCompanyVoiceAIAgent/src/skills/fraud-disputes/tools/block-card.ts"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "dist/block_card.bundle.js": {
+      "imports": [],
+      "exports": [],
+      "entryPoint": "dist/__block_card_wrapper.ts",
+      "inputs": {
+        "node_modules/@wonderful/types/dist/schema.js": {
+          "bytesInOutput": 8736
+        },
+        "src/skills/fraud-disputes/tools/block-card.ts": {
+          "bytesInOutput": 2232
+        },
+        "dist/__block_card_wrapper.ts": {
+          "bytesInOutput": 169
+        }
+      },
+      "bytes": 12589
+    }
+  }
+}

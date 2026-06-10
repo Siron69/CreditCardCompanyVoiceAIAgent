@@ -1,0 +1,50 @@
+{
+  "inputs": {
+    "node_modules/@wonderful/types/dist/schema.js": {
+      "bytes": 11264,
+      "imports": [],
+      "format": "cjs"
+    },
+    "src/skills/knowledge-rag/tools/query-knowledge-base.ts": {
+      "bytes": 889,
+      "imports": [
+        {
+          "path": "node_modules/@wonderful/types/dist/schema.js",
+          "kind": "import-statement",
+          "original": "@wonderful/types/schema"
+        }
+      ],
+      "format": "esm"
+    },
+    "dist/__query_knowledge_base_wrapper.ts": {
+      "bytes": 652,
+      "imports": [
+        {
+          "path": "src/skills/knowledge-rag/tools/query-knowledge-base.ts",
+          "kind": "import-statement",
+          "original": "/home/simone/CreditCardCompanyVoiceAIAgent/src/skills/knowledge-rag/tools/query-knowledge-base.ts"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "dist/query_knowledge_base.bundle.js": {
+      "imports": [],
+      "exports": [],
+      "entryPoint": "dist/__query_knowledge_base_wrapper.ts",
+      "inputs": {
+        "node_modules/@wonderful/types/dist/schema.js": {
+          "bytesInOutput": 8736
+        },
+        "src/skills/knowledge-rag/tools/query-knowledge-base.ts": {
+          "bytesInOutput": 929
+        },
+        "dist/__query_knowledge_base_wrapper.ts": {
+          "bytesInOutput": 179
+        }
+      },
+      "bytes": 11315
+    }
+  }
+}

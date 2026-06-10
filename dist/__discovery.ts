@@ -5,7 +5,7 @@
  * This script is executed as a tool to collect metadata about exported w.account objects.
  */
 
-import * as mod0 from "/mnt/c/Users/simone.franchi/Projects/CreditCardCompanyVoiceAIAgent/src/account.ts";
+import * as mod0 from "/home/simone/CreditCardCompanyVoiceAIAgent/src/account.ts";
 
 const candidates = [
 		{ path: "src/account.ts", mod: mod0 },

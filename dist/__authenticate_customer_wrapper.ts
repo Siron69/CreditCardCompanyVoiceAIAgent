@@ -5,7 +5,7 @@
  * This script wraps a tool created with w.tool() and exposes its handler as main().
  */
 
-import tool from "/mnt/c/Users/simone.franchi/Projects/CreditCardCompanyVoiceAIAgent/src/tools/authenticate-customer.ts";
+import tool from "/home/simone/CreditCardCompanyVoiceAIAgent/src/tools/authenticate-customer.ts";
 
 async function main(ctx: any, params: any): Promise<any> {
 	// Extract the params from the context data (CLI passes params in ctx.data)

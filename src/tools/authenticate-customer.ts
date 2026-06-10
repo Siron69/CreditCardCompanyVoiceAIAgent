@@ -3,12 +3,13 @@ import { s, w } from "@wonderful/types/schema";
 export default w.tool({
   name: "authenticate-customer",
   description:
-    "Autentica il cliente verificando le ultime 4 cifre della carta e il codice fiscale. Deve essere chiamato prima di qualsiasi operazione che richiede accesso all'account. Persiste lo stato di autenticazione in KV per la durata della sessione.",
+    "Authenticates the customer by verifying the last 4 digits of their card and their Italian tax code (codice fiscale). Must be called before any operation requiring account access. Persists authentication state in KV for the duration of the session.",
   params: s.object({
-    last_four: s.string().describe("Ultime 4 cifre della carta di credito del cliente"),
-    codice_fiscale: s.string().describe("Codice fiscale del cliente (16 caratteri)"),
+    last_four: s.string().describe("Last 4 digits of the customer's credit card"),
+    codice_fiscale: s.string().describe("Customer's Italian tax code (codice fiscale, 16 characters)"),
   }),
   handler: async (ctx, params) => {
+    try {
     const alreadyAuthenticated = ctx.kv.exists("authenticated_customer_id");
     if (alreadyAuthenticated) {
       const customerId = ctx.kv.get("authenticated_customer_id") as string;
@@ -18,26 +19,31 @@ export default w.tool({
         already_authenticated: true,
         customer_id: customerId,
         customer_name: customerName,
-        message: `Cliente già autenticato: ${customerName}`,
+        message: `Customer already authenticated: ${customerName}`,
       };
     }
 
-    const failedAttempts = (ctx.kv.get("auth_failed_attempts") as number) ?? 0;
+    const failedAttempts = ctx.kv.exists("auth_failed_attempts") ? (ctx.kv.get("auth_failed_attempts") as number) : 0;
     if (failedAttempts >= 3) {
       ctx.agent.sendSystemMessage(
-        "Il cliente ha superato il numero massimo di tentativi di autenticazione. Offri escalation a operatore umano."
+        "Customer has exceeded the maximum number of authentication attempts. Offer escalation to a human agent."
       );
       return {
         success: false,
         locked: true,
-        message: "Troppi tentativi falliti. Per la sicurezza del tuo account, ti trasferisco a un operatore.",
+        message: "Too many failed attempts. For the security of your account, I am transferring you to an agent.",
       };
     }
 
     const apiUrl = ctx.globals.get("api_base_url") as string;
-    const response = await fetch(`${apiUrl}/getCustomerByAuth`, {
+    const rawSecret = ctx.secrets.get("WONDERFUL_SECRET_API_KEY");
+    const apiKey = typeof rawSecret === "object" && rawSecret !== null
+      ? (rawSecret as { value: string }).value
+      : rawSecret as string;
+
+    const response = await fetch(`${apiUrl}/getcustomerbyauth`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-api-key": apiKey },
       body: JSON.stringify({
         last_four: params.last_four.trim(),
         codice_fiscale: params.codice_fiscale.trim().toUpperCase(),
@@ -45,10 +51,7 @@ export default w.tool({
     });
 
     if (!response.ok) {
-      return {
-        success: false,
-        message: "Si è verificato un errore tecnico durante la verifica. Riprova tra un momento.",
-      };
+      return { success: false, message: "A technical error occurred during verification. Please try again in a moment." };
     }
 
     const data = await response.json();
@@ -60,18 +63,18 @@ export default w.tool({
       const remainingAttempts = 3 - newFailedAttempts;
 
       if (remainingAttempts === 0) {
-        ctx.agent.sendSystemMessage("Ultimo tentativo fallito. Offri escalation a operatore umano.");
+        ctx.agent.sendSystemMessage("Last attempt failed. Offer escalation to a human agent.");
         return {
           success: false,
           locked: true,
-          message: "Dati non corretti. Per la sicurezza del tuo account, ti trasferisco a un operatore.",
+          message: "Incorrect details. For the security of your account, I am transferring you to an agent.",
         };
       }
 
       return {
         success: false,
         remaining_attempts: remainingAttempts,
-        message: `Dati non corretti. Hai ancora ${remainingAttempts} ${remainingAttempts === 1 ? "tentativo" : "tentativi"}.`,
+        message: `Incorrect details. You have ${remainingAttempts} ${remainingAttempts === 1 ? "attempt" : "attempts"} remaining.`,
       };
     }
 
@@ -81,11 +84,11 @@ export default w.tool({
     ctx.kv.set("auth_failed_attempts", 0);
 
     if (customer.account_status === "blocked") {
-      ctx.agent.sendSystemMessage("Cliente autenticato ma carta BLOCCATA. Informa il cliente e offri le opzioni disponibili.");
+      ctx.agent.sendSystemMessage("Customer authenticated but card is BLOCKED. Inform the customer and offer available options.");
     } else if (customer.account_status === "fraud_flag") {
-      ctx.agent.sendSystemMessage("Cliente autenticato ma account con FLAG FRODE attivo. Tratta con massima cautela.");
+      ctx.agent.sendSystemMessage("Customer authenticated but account has an active FRAUD FLAG. Handle with maximum caution.");
     } else if (customer.account_status === "expired") {
-      ctx.agent.sendSystemMessage("Cliente autenticato ma carta SCADUTA. Informa il cliente.");
+      ctx.agent.sendSystemMessage("Customer authenticated but card is EXPIRED. Inform the customer.");
     }
 
     return {
@@ -93,7 +96,14 @@ export default w.tool({
       customer_id: customer.id,
       customer_name: `${customer.first_name} ${customer.last_name}`,
       account_status: customer.account_status,
-      message: `Autenticazione riuscita. Benvenuto, ${customer.first_name}.`,
+      message: `Authentication successful. Welcome, ${customer.first_name}.`,
     };
+    } catch (err) {
+      ctx.agent.sendSystemMessage("Unhandled error in authenticate-customer. Offer to transfer to a human agent.");
+      return {
+        success: false,
+        message: "An unexpected error occurred. I'm transferring you to a human agent who can assist you.",
+      };
+    }
   },
 });

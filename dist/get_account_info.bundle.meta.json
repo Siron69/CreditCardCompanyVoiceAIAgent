@@ -1,0 +1,50 @@
+{
+  "inputs": {
+    "node_modules/@wonderful/types/dist/schema.js": {
+      "bytes": 11264,
+      "imports": [],
+      "format": "cjs"
+    },
+    "src/skills/account-servicing/tools/get-account-info.ts": {
+      "bytes": 1533,
+      "imports": [
+        {
+          "path": "node_modules/@wonderful/types/dist/schema.js",
+          "kind": "import-statement",
+          "original": "@wonderful/types/schema"
+        }
+      ],
+      "format": "esm"
+    },
+    "dist/__get_account_info_wrapper.ts": {
+      "bytes": 652,
+      "imports": [
+        {
+          "path": "src/skills/account-servicing/tools/get-account-info.ts",
+          "kind": "import-statement",
+          "original": "/home/simone/CreditCardCompanyVoiceAIAgent/src/skills/account-servicing/tools/get-account-info.ts"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "dist/get_account_info.bundle.js": {
+      "imports": [],
+      "exports": [],
+      "entryPoint": "dist/__get_account_info_wrapper.ts",
+      "inputs": {
+        "node_modules/@wonderful/types/dist/schema.js": {
+          "bytesInOutput": 8736
+        },
+        "src/skills/account-servicing/tools/get-account-info.ts": {
+          "bytesInOutput": 1534
+        },
+        "dist/__get_account_info_wrapper.ts": {
+          "bytesInOutput": 175
+        }
+      },
+      "bytes": 11912
+    }
+  }
+}
