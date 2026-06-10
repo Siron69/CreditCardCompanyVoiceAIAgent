@@ -334,7 +334,7 @@ var account_exports = {};
 __export(account_exports, {
   default: () => account_default
 });
-var import_schema17 = __toESM(require_schema());
+var import_schema15 = __toESM(require_schema());
 
 // src/skills/account-servicing/index.ts
 var import_schema5 = __toESM(require_schema());
@@ -443,7 +443,7 @@ var get_account_info_default = import_schema2.w.tool({
   params: import_schema2.s.object({}),
   handler: async (ctx, _params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }
@@ -481,7 +481,7 @@ var get_transactions_default = import_schema3.w.tool({
   }),
   handler: async (ctx, params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }
@@ -523,7 +523,7 @@ var update_contact_default = import_schema4.w.tool({
   }),
   handler: async (ctx, params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }
@@ -576,7 +576,7 @@ var block_card_default = import_schema6.w.tool({
   }),
   handler: async (ctx, params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }
@@ -625,8 +625,8 @@ var request_card_unblock_default = import_schema7.w.tool({
   }),
   handler: async (ctx, params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
-      const accountStatus = ctx.kv.get("authenticated_account_status");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
+      const accountStatus = ctx.kv.exists("authenticated_account_status") ? ctx.kv.get("authenticated_account_status") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }
@@ -686,34 +686,51 @@ var request_card_unblock_default = import_schema7.w.tool({
 var import_schema8 = __toESM(require_schema());
 var check_unblock_status_default = import_schema8.w.tool({
   name: "check-unblock-status",
-  description: "Checks the status of a previously submitted card unblock request.",
+  description: "Checks the status of a previously submitted card unblock request. If no case ID is provided, looks up the most recent request of the authenticated customer.",
   params: import_schema8.s.object({
-    case_id: import_schema8.s.optional(import_schema8.s.string()).describe("Case ID. If omitted, uses the one stored in the current session.")
+    case_id: import_schema8.s.optional(import_schema8.s.string()).describe("Case ID. If omitted, uses the one from the current session or the authenticated customer's most recent request.")
   }),
   handler: async (ctx, params) => {
     try {
-      const caseId = params.case_id ?? ctx.kv.get("unblock_case_id");
-      if (!caseId) {
-        return { success: false, message: "No unblock request found. Please provide the reference number received by SMS." };
+      const caseId = params.case_id ?? (ctx.kv.exists("unblock_case_id") ? ctx.kv.get("unblock_case_id") : null);
+      let status = null;
+      let reviewerNotes = null;
+      if (caseId) {
+        const apiUrl = ctx.globals.get("api_base_url");
+        const rawSecret = ctx.secrets.get("WONDERFUL_SECRET_API_KEY");
+        const apiKey = typeof rawSecret === "object" && rawSecret !== null ? rawSecret.value : rawSecret;
+        const response = await fetch(`${apiUrl}/getunblockcasestatus`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+          body: JSON.stringify({ case_id: caseId })
+        });
+        if (!response.ok) {
+          return { success: false, message: "Error checking the status. Please try again." };
+        }
+        const data = await response.json();
+        status = data.status ?? null;
+        reviewerNotes = data.reviewer_notes ?? null;
+      } else {
+        const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
+        if (!customerId) {
+          return { success: false, message: "Customer not authenticated and no case reference provided. Please authenticate first, or provide the reference number received by SMS." };
+        }
+        const result = await ctx.tables.filter("card_unblock_cases", [
+          { column: "customer_id", operator: "eq", value: customerId }
+        ], 1);
+        if (result.rows.length === 0) {
+          return { success: false, message: "No unblock request found for this customer." };
+        }
+        const row = result.rows[0].data;
+        status = row.status ?? null;
+        reviewerNotes = row.reviewer_notes ?? null;
       }
-      const apiUrl = ctx.globals.get("api_base_url");
-      const rawSecret = ctx.secrets.get("WONDERFUL_SECRET_API_KEY");
-      const apiKey = typeof rawSecret === "object" && rawSecret !== null ? rawSecret.value : rawSecret;
-      const response = await fetch(`${apiUrl}/getunblockcasestatus`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-        body: JSON.stringify({ case_id: caseId })
-      });
-      if (!response.ok) {
-        return { success: false, message: "Error checking the status. Please try again." };
-      }
-      const data = await response.json();
       const messages = {
         pending: "Your request is still under review. We will contact you within 24 business hours.",
         approved: "Great news! Your request has been approved. Your card is now active.",
-        denied: `Your request was not approved.${data.reviewer_notes ? ` Note: ${data.reviewer_notes}` : ""} For assistance you can speak with an agent.`
+        denied: `Your request was not approved.${reviewerNotes ? ` Note: ${reviewerNotes}` : ""} For assistance you can speak with an agent.`
       };
-      return { success: true, status: data.status, reviewer_notes: data.reviewer_notes ?? null, message: messages[data.status] ?? "Status unrecognised. Please contact support." };
+      return { success: true, status, reviewer_notes: reviewerNotes, message: status && messages[status] || "Status unrecognised. Please contact support." };
     } catch (err) {
       ctx.agent.sendSystemMessage("Unhandled error in check-unblock-status. Offer to transfer to a human agent.");
       return {
@@ -735,7 +752,7 @@ var report_suspicious_transaction_default = import_schema9.w.tool({
   }),
   handler: async (ctx, params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }
@@ -770,47 +787,18 @@ var fraud_disputes_default = import_schema10.w.skill({
   tools: [authenticate_customer_default, block_card_default, request_card_unblock_default, check_unblock_status_default, report_suspicious_transaction_default]
 });
 
-// src/skills/knowledge-rag/index.ts
-var import_schema12 = __toESM(require_schema());
-
-// src/skills/knowledge-rag/tools/query-knowledge-base.ts
-var import_schema11 = __toESM(require_schema());
-var query_knowledge_base_default = import_schema11.w.tool({
-  name: "query-knowledge-base",
-  description: "Searches the SpaceCard knowledge base to answer general questions about benefits, fees, APR rates, rewards programs, application processes, policies, and financial education. No authentication required.",
-  params: import_schema11.s.object({
-    query: import_schema11.s.string().describe("The question or topic to search for in the knowledge base")
-  }),
-  handler: async (ctx, params) => {
-    const knowledgeBaseId = ctx.globals.get("knowledge_base_id");
-    const results = await ctx.tools.callRag(knowledgeBaseId, params.query);
-    if (!results || Array.isArray(results) && results.length === 0) {
-      return { success: false, message: "No information found on this topic. I can transfer you to a specialist agent." };
-    }
-    return { success: true, results };
-  }
-});
-
-// src/skills/knowledge-rag/index.ts
-var knowledge_rag_default = import_schema12.w.skill({
-  name: "knowledge-rag",
-  description: "Answers general questions about SpaceCard products, benefits, fees, policies, and financial education. No authentication required.",
-  prompt: "src/skills/knowledge-rag/prompt.md",
-  tools: [query_knowledge_base_default]
-});
-
 // src/skills/rewards-redemption/index.ts
-var import_schema16 = __toESM(require_schema());
+var import_schema14 = __toESM(require_schema());
 
 // src/skills/rewards-redemption/tools/get-rewards-balance.ts
-var import_schema13 = __toESM(require_schema());
-var get_rewards_balance_default = import_schema13.w.tool({
+var import_schema11 = __toESM(require_schema());
+var get_rewards_balance_default = import_schema11.w.tool({
   name: "get-rewards-balance",
   description: "Retrieves the authenticated customer's loyalty points balance, tier, and points expiry date.",
-  params: import_schema13.s.object({}),
+  params: import_schema11.s.object({}),
   handler: async (ctx, _params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }
@@ -846,11 +834,11 @@ var get_rewards_balance_default = import_schema13.w.tool({
 });
 
 // src/skills/rewards-redemption/tools/get-rewards-catalog.ts
-var import_schema14 = __toESM(require_schema());
-var get_rewards_catalog_default = import_schema14.w.tool({
+var import_schema12 = __toESM(require_schema());
+var get_rewards_catalog_default = import_schema12.w.tool({
   name: "get-rewards-catalog",
   description: "Retrieves the available rewards catalog for points redemption. No authentication required.",
-  params: import_schema14.s.object({}),
+  params: import_schema12.s.object({}),
   handler: async (ctx, _params) => {
     try {
       const apiUrl = ctx.globals.get("api_base_url");
@@ -877,18 +865,18 @@ var get_rewards_catalog_default = import_schema14.w.tool({
 });
 
 // src/skills/rewards-redemption/tools/redeem-rewards.ts
-var import_schema15 = __toESM(require_schema());
-var redeem_rewards_default = import_schema15.w.tool({
+var import_schema13 = __toESM(require_schema());
+var redeem_rewards_default = import_schema13.w.tool({
   name: "redeem-rewards",
   description: "Redeems loyalty points for a reward chosen by the customer. Requires explicit confirmation before proceeding.",
-  params: import_schema15.s.object({
-    reward_id: import_schema15.s.string().describe("ID of the reward to redeem"),
-    reward_name: import_schema15.s.string().describe("Name of the reward (used for voice confirmation)"),
-    confirmed: import_schema15.s.boolean().describe("true if the customer has already confirmed, false to prompt for confirmation")
+  params: import_schema13.s.object({
+    reward_id: import_schema13.s.string().describe("ID of the reward to redeem"),
+    reward_name: import_schema13.s.string().describe("Name of the reward (used for voice confirmation)"),
+    confirmed: import_schema13.s.boolean().describe("true if the customer has already confirmed, false to prompt for confirmation")
   }),
   handler: async (ctx, params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }
@@ -922,7 +910,7 @@ var redeem_rewards_default = import_schema15.w.tool({
 });
 
 // src/skills/rewards-redemption/index.ts
-var rewards_redemption_default = import_schema16.w.skill({
+var rewards_redemption_default = import_schema14.w.skill({
   name: "rewards-redemption",
   description: "Manages the SpaceCard loyalty programme: points balance, rewards catalog, redemptions. Requires authentication.",
   prompt: "src/skills/rewards-redemption/prompt.md",
@@ -930,20 +918,20 @@ var rewards_redemption_default = import_schema16.w.skill({
 });
 
 // src/account.ts
-var spacecardAgent = import_schema17.w.agent({
+var spacecardAgent = import_schema15.w.agent({
   name: "SpaceCard",
   description: "SpaceCard voice assistant — Italian-language credit card customer service.",
   prompt: "src/agents/prompt.md",
-  skills: [account_servicing_default, fraud_disputes_default, knowledge_rag_default, rewards_redemption_default]
+  skills: [account_servicing_default, fraud_disputes_default, rewards_redemption_default]
 });
-var dev = import_schema17.w.env({
+var dev = import_schema15.w.env({
   name: "dev",
   url: "https://simonecert.api.dev.wonderful.cx",
   tenant: "simonecert"
 });
-var account_default = import_schema17.w.account({
+var account_default = import_schema15.w.account({
   name: "spacecard",
-  skills: [account_servicing_default, fraud_disputes_default, knowledge_rag_default, rewards_redemption_default],
+  skills: [account_servicing_default, fraud_disputes_default, rewards_redemption_default],
   agents: [spacecardAgent],
   envs: [dev]
 });
@@ -1255,7 +1243,7 @@ function toAgentMetadata(agent) {
   if (!isAgent(agent)) {
     return null;
   }
-  const skills = agent.skills.filter((s13) => isObject(s13) && typeof s13.name === "string").map((s13) => s13.name);
+  const skills = agent.skills.filter((s12) => isObject(s12) && typeof s12.name === "string").map((s12) => s12.name);
   return {
     name: agent.name,
     description: typeof agent.description === "string" ? agent.description : null,
@@ -1276,7 +1264,7 @@ async function main(ctx, params) {
         const accountAgents = Array.isArray(value.agents) ? value.agents : [];
         validateAgents(accountAgents, path);
         const tools = collectTools(value, path);
-        const skills = value.skills.map(toSkillMetadata).filter((s13) => s13 !== null);
+        const skills = value.skills.map(toSkillMetadata).filter((s12) => s12 !== null);
         const agents = accountAgents.map(toAgentMetadata).filter((a) => a !== null);
         const envs = value.envs.map(toEnvironmentMetadata).filter((e) => e !== null);
         results.push({

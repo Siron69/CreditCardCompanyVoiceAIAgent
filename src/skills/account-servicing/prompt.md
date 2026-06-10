@@ -41,4 +41,4 @@ Switch to **fraud-disputes** if the customer mentions:
 
 Switch to **rewards-redemption** if the customer asks about points or rewards.
 
-Switch to **knowledge-rag** if the question is informational and does not require personal data.
+If the question is informational and does not require personal data, answer directly from the knowledge base (no authentication needed).

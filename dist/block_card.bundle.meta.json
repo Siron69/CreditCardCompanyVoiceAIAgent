@@ -6,7 +6,7 @@
       "format": "cjs"
     },
     "src/skills/fraud-disputes/tools/block-card.ts": {
-      "bytes": 2421,
+      "bytes": 2475,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -38,13 +38,13 @@
           "bytesInOutput": 8736
         },
         "src/skills/fraud-disputes/tools/block-card.ts": {
-          "bytesInOutput": 2232
+          "bytesInOutput": 2284
         },
         "dist/__block_card_wrapper.ts": {
           "bytesInOutput": 169
         }
       },
-      "bytes": 12589
+      "bytes": 12641
     }
   }
 }

@@ -7,7 +7,7 @@ export default w.tool({
   params: s.object({}),
   handler: async (ctx, _params) => {
     try {
-    const customerId = ctx.kv.get("authenticated_customer_id") as string;
+    const customerId = ctx.kv.exists("authenticated_customer_id") ? (ctx.kv.get("authenticated_customer_id") as string) : null;
     if (!customerId) {
       return { success: false, message: "Customer not authenticated. Please authenticate first." };
     }

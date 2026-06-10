@@ -336,7 +336,7 @@ var get_transactions_default = import_schema.w.tool({
   }),
   handler: async (ctx, params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }

@@ -17,7 +17,7 @@
       "format": "esm"
     },
     "src/skills/account-servicing/tools/get-account-info.ts": {
-      "bytes": 1533,
+      "bytes": 1587,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -28,7 +28,7 @@
       "format": "esm"
     },
     "src/skills/account-servicing/tools/get-transactions.ts": {
-      "bytes": 1838,
+      "bytes": 1892,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -39,7 +39,7 @@
       "format": "esm"
     },
     "src/skills/account-servicing/tools/update-contact.ts": {
-      "bytes": 2033,
+      "bytes": 2087,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -81,7 +81,7 @@
       "format": "esm"
     },
     "src/skills/fraud-disputes/tools/block-card.ts": {
-      "bytes": 2421,
+      "bytes": 2475,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -92,7 +92,7 @@
       "format": "esm"
     },
     "src/skills/fraud-disputes/tools/request-card-unblock.ts": {
-      "bytes": 3421,
+      "bytes": 3532,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -103,7 +103,7 @@
       "format": "esm"
     },
     "src/skills/fraud-disputes/tools/check-unblock-status.ts": {
-      "bytes": 2150,
+      "bytes": 3421,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -114,7 +114,7 @@
       "format": "esm"
     },
     "src/skills/fraud-disputes/tools/report-suspicious-transaction.ts": {
-      "bytes": 1939,
+      "bytes": 1993,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -160,35 +160,8 @@
       ],
       "format": "esm"
     },
-    "src/skills/knowledge-rag/tools/query-knowledge-base.ts": {
-      "bytes": 889,
-      "imports": [
-        {
-          "path": "node_modules/@wonderful/types/dist/schema.js",
-          "kind": "import-statement",
-          "original": "@wonderful/types/schema"
-        }
-      ],
-      "format": "esm"
-    },
-    "src/skills/knowledge-rag/index.ts": {
-      "bytes": 395,
-      "imports": [
-        {
-          "path": "node_modules/@wonderful/types/dist/schema.js",
-          "kind": "import-statement",
-          "original": "@wonderful/types/schema"
-        },
-        {
-          "path": "src/skills/knowledge-rag/tools/query-knowledge-base.ts",
-          "kind": "import-statement",
-          "original": "./tools/query-knowledge-base"
-        }
-      ],
-      "format": "esm"
-    },
     "src/skills/rewards-redemption/tools/get-rewards-balance.ts": {
-      "bytes": 1921,
+      "bytes": 1975,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -210,7 +183,7 @@
       "format": "esm"
     },
     "src/skills/rewards-redemption/tools/redeem-rewards.ts": {
-      "bytes": 2369,
+      "bytes": 2423,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -252,7 +225,7 @@
       "format": "esm"
     },
     "src/account.ts": {
-      "bytes": 827,
+      "bytes": 748,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -268,11 +241,6 @@
           "path": "src/skills/fraud-disputes/index.ts",
           "kind": "import-statement",
           "original": "./skills/fraud-disputes"
-        },
-        {
-          "path": "src/skills/knowledge-rag/index.ts",
-          "kind": "import-statement",
-          "original": "./skills/knowledge-rag"
         },
         {
           "path": "src/skills/rewards-redemption/index.ts",
@@ -304,7 +272,7 @@
           "bytesInOutput": 8736
         },
         "src/account.ts": {
-          "bytesInOutput": 811
+          "bytesInOutput": 765
         },
         "src/skills/account-servicing/index.ts": {
           "bytesInOutput": 437
@@ -313,52 +281,46 @@
           "bytesInOutput": 4714
         },
         "src/skills/account-servicing/tools/get-account-info.ts": {
-          "bytesInOutput": 1537
+          "bytesInOutput": 1589
         },
         "src/skills/account-servicing/tools/get-transactions.ts": {
-          "bytesInOutput": 1908
+          "bytesInOutput": 1960
         },
         "src/skills/account-servicing/tools/update-contact.ts": {
-          "bytesInOutput": 2106
+          "bytesInOutput": 2158
         },
         "src/skills/fraud-disputes/index.ts": {
           "bytesInOutput": 456
         },
         "src/skills/fraud-disputes/tools/block-card.ts": {
-          "bytesInOutput": 2236
+          "bytesInOutput": 2288
         },
         "src/skills/fraud-disputes/tools/request-card-unblock.ts": {
-          "bytesInOutput": 3227
+          "bytesInOutput": 3334
         },
         "src/skills/fraud-disputes/tools/check-unblock-status.ts": {
-          "bytesInOutput": 2171
+          "bytesInOutput": 3150
         },
         "src/skills/fraud-disputes/tools/report-suspicious-transaction.ts": {
-          "bytesInOutput": 1989
-        },
-        "src/skills/knowledge-rag/index.ts": {
-          "bytesInOutput": 369
-        },
-        "src/skills/knowledge-rag/tools/query-knowledge-base.ts": {
-          "bytesInOutput": 937
+          "bytesInOutput": 2041
         },
         "src/skills/rewards-redemption/index.ts": {
           "bytesInOutput": 448
         },
         "src/skills/rewards-redemption/tools/get-rewards-balance.ts": {
-          "bytesInOutput": 1964
+          "bytesInOutput": 2016
         },
         "src/skills/rewards-redemption/tools/get-rewards-catalog.ts": {
           "bytesInOutput": 1318
         },
         "src/skills/rewards-redemption/tools/redeem-rewards.ts": {
-          "bytesInOutput": 2431
+          "bytesInOutput": 2483
         },
         "dist/__discovery.ts": {
           "bytesInOutput": 10164
         }
       },
-      "bytes": 50538
+      "bytes": 50501
     }
   }
 }

@@ -6,7 +6,7 @@
       "format": "cjs"
     },
     "src/skills/account-servicing/tools/get-transactions.ts": {
-      "bytes": 1838,
+      "bytes": 1892,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -38,13 +38,13 @@
           "bytesInOutput": 8736
         },
         "src/skills/account-servicing/tools/get-transactions.ts": {
-          "bytesInOutput": 1901
+          "bytesInOutput": 1953
         },
         "dist/__get_transactions_wrapper.ts": {
           "bytesInOutput": 175
         }
       },
-      "bytes": 12279
+      "bytes": 12331
     }
   }
 }

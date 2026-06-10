@@ -333,7 +333,7 @@ var get_account_info_default = import_schema.w.tool({
   params: import_schema.s.object({}),
   handler: async (ctx, _params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }

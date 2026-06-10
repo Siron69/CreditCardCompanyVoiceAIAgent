@@ -54,4 +54,4 @@ Manage the SpaceCard loyalty programme: show points balance, present the rewards
 
 Switch to **account-servicing** if the customer also wants to see their card balance or transactions.
 
-Switch to **knowledge-rag** if the customer has general questions about how the rewards programme works.
+If the customer has general questions about how the rewards programme works, answer directly from the knowledge base.

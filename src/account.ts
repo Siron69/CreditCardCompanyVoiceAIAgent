@@ -1,7 +1,6 @@
 import { w } from "@wonderful/types/schema";
 import accountServicing from "./skills/account-servicing";
 import fraudDisputes from "./skills/fraud-disputes";
-import knowledgeRag from "./skills/knowledge-rag";
 import rewardsRedemption from "./skills/rewards-redemption";
 
 const spacecardAgent = w.agent({
@@ -9,7 +8,7 @@ const spacecardAgent = w.agent({
   description:
     "SpaceCard voice assistant — Italian-language credit card customer service.",
   prompt: "src/agents/prompt.md",
-  skills: [accountServicing, fraudDisputes, knowledgeRag, rewardsRedemption],
+  skills: [accountServicing, fraudDisputes, rewardsRedemption],
 });
 
 const dev = w.env({
@@ -20,7 +19,7 @@ const dev = w.env({
 
 export default w.account({
   name: "spacecard",
-  skills: [accountServicing, fraudDisputes, knowledgeRag, rewardsRedemption],
+  skills: [accountServicing, fraudDisputes, rewardsRedemption],
   agents: [spacecardAgent],
   envs: [dev],
 });

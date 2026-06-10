@@ -329,34 +329,51 @@ var require_schema = __commonJS({
 var import_schema = __toESM(require_schema());
 var check_unblock_status_default = import_schema.w.tool({
   name: "check-unblock-status",
-  description: "Checks the status of a previously submitted card unblock request.",
+  description: "Checks the status of a previously submitted card unblock request. If no case ID is provided, looks up the most recent request of the authenticated customer.",
   params: import_schema.s.object({
-    case_id: import_schema.s.optional(import_schema.s.string()).describe("Case ID. If omitted, uses the one stored in the current session.")
+    case_id: import_schema.s.optional(import_schema.s.string()).describe("Case ID. If omitted, uses the one from the current session or the authenticated customer's most recent request.")
   }),
   handler: async (ctx, params) => {
     try {
-      const caseId = params.case_id ?? ctx.kv.get("unblock_case_id");
-      if (!caseId) {
-        return { success: false, message: "No unblock request found. Please provide the reference number received by SMS." };
+      const caseId = params.case_id ?? (ctx.kv.exists("unblock_case_id") ? ctx.kv.get("unblock_case_id") : null);
+      let status = null;
+      let reviewerNotes = null;
+      if (caseId) {
+        const apiUrl = ctx.globals.get("api_base_url");
+        const rawSecret = ctx.secrets.get("WONDERFUL_SECRET_API_KEY");
+        const apiKey = typeof rawSecret === "object" && rawSecret !== null ? rawSecret.value : rawSecret;
+        const response = await fetch(`${apiUrl}/getunblockcasestatus`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+          body: JSON.stringify({ case_id: caseId })
+        });
+        if (!response.ok) {
+          return { success: false, message: "Error checking the status. Please try again." };
+        }
+        const data = await response.json();
+        status = data.status ?? null;
+        reviewerNotes = data.reviewer_notes ?? null;
+      } else {
+        const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
+        if (!customerId) {
+          return { success: false, message: "Customer not authenticated and no case reference provided. Please authenticate first, or provide the reference number received by SMS." };
+        }
+        const result = await ctx.tables.filter("card_unblock_cases", [
+          { column: "customer_id", operator: "eq", value: customerId }
+        ], 1);
+        if (result.rows.length === 0) {
+          return { success: false, message: "No unblock request found for this customer." };
+        }
+        const row = result.rows[0].data;
+        status = row.status ?? null;
+        reviewerNotes = row.reviewer_notes ?? null;
       }
-      const apiUrl = ctx.globals.get("api_base_url");
-      const rawSecret = ctx.secrets.get("WONDERFUL_SECRET_API_KEY");
-      const apiKey = typeof rawSecret === "object" && rawSecret !== null ? rawSecret.value : rawSecret;
-      const response = await fetch(`${apiUrl}/getunblockcasestatus`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-        body: JSON.stringify({ case_id: caseId })
-      });
-      if (!response.ok) {
-        return { success: false, message: "Error checking the status. Please try again." };
-      }
-      const data = await response.json();
       const messages = {
         pending: "Your request is still under review. We will contact you within 24 business hours.",
         approved: "Great news! Your request has been approved. Your card is now active.",
-        denied: `Your request was not approved.${data.reviewer_notes ? ` Note: ${data.reviewer_notes}` : ""} For assistance you can speak with an agent.`
+        denied: `Your request was not approved.${reviewerNotes ? ` Note: ${reviewerNotes}` : ""} For assistance you can speak with an agent.`
       };
-      return { success: true, status: data.status, reviewer_notes: data.reviewer_notes ?? null, message: messages[data.status] ?? "Status unrecognised. Please contact support." };
+      return { success: true, status, reviewer_notes: reviewerNotes, message: status && messages[status] || "Status unrecognised. Please contact support." };
     } catch (err) {
       ctx.agent.sendSystemMessage("Unhandled error in check-unblock-status. Offer to transfer to a human agent.");
       return {

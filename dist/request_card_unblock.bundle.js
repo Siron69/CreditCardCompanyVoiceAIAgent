@@ -335,8 +335,8 @@ var request_card_unblock_default = import_schema.w.tool({
   }),
   handler: async (ctx, params) => {
     try {
-      const customerId = ctx.kv.get("authenticated_customer_id");
-      const accountStatus = ctx.kv.get("authenticated_account_status");
+      const customerId = ctx.kv.exists("authenticated_customer_id") ? ctx.kv.get("authenticated_customer_id") : null;
+      const accountStatus = ctx.kv.exists("authenticated_account_status") ? ctx.kv.get("authenticated_account_status") : null;
       if (!customerId) {
         return { success: false, message: "Customer not authenticated. Please authenticate first." };
       }

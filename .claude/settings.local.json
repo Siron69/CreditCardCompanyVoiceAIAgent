@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wonderful build *)",
+      "Bash(cd ~/CreditCardCompanyVoiceAIAgent && wonderful build --account src/account.ts --all 2>&1)",
+      "PowerShell(wsl -e bash -c \"cd ~/CreditCardCompanyVoiceAIAgent && wonderful build --account src/account.ts --all 2>&1\")",
+      "Read(//c/Users/simone.franchi/**)",
+      "Bash(rm -rf src/skills/knowledge-rag)",
+      "Bash(ls dist/)",
+      "Bash(find dist *)",
+      "PowerShell(wsl -e bash -ic \"cd ~/CreditCardCompanyVoiceAIAgent; which node; which wonderful; wonderful build --account src/account.ts --all\")"
+    ]
+  }
+}
