@@ -5,7 +5,11 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -327,11 +331,72 @@ var require_schema = __commonJS({
 
 // src/skills/fraud-disputes/tools/request-card-unblock.ts
 var import_schema = __toESM(require_schema());
+
+// src/lib/voice-spelling.ts
+var LETTER_NAMES = {
+  a: "a",
+  b: "bi",
+  c: "ci",
+  d: "di",
+  e: "e",
+  f: "effe",
+  g: "gi",
+  h: "acca",
+  i: "i",
+  j: "i lunga",
+  k: "kappa",
+  l: "elle",
+  m: "emme",
+  n: "enne",
+  o: "o",
+  p: "pi",
+  q: "cu",
+  r: "erre",
+  s: "esse",
+  t: "ti",
+  u: "u",
+  v: "vu",
+  w: "doppia vu",
+  x: "ics",
+  y: "ipsilon",
+  z: "zeta"
+};
+var DIGIT_NAMES = ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove"];
+function spellForVoice(code, groupSize = 4) {
+  const parts = [];
+  let currentGroup = [];
+  const flush = () => {
+    if (currentGroup.length > 0) {
+      parts.push(currentGroup.join(" "));
+      currentGroup = [];
+    }
+  };
+  for (const ch of code) {
+    const lower = ch.toLowerCase();
+    if (LETTER_NAMES[lower]) {
+      currentGroup.push(LETTER_NAMES[lower]);
+    } else if (/\d/.test(ch)) {
+      currentGroup.push(DIGIT_NAMES[Number(ch)]);
+    } else if (ch === "_" || ch === "-") {
+      flush();
+      parts.push(ch === "_" ? "trattino basso" : "trattino");
+      continue;
+    } else {
+      continue;
+    }
+    if (currentGroup.length === groupSize) flush();
+  }
+  flush();
+  return parts.join(", ");
+}
+
+// src/skills/fraud-disputes/tools/request-card-unblock.ts
 var request_card_unblock_default = import_schema.w.tool({
   name: "request-card-unblock",
   description: "Submits a card unblock request to the external review platform. Does NOT unblock automatically — the decision is made by a human reviewer.",
   params: import_schema.s.object({
-    customer_stated_reason: import_schema.s.string().describe("The reason stated by the customer for requesting the unblock")
+    customer_stated_reason: import_schema.s.string().describe("The reason stated by the customer for requesting the unblock"),
+    codice_fiscale: import_schema.s.string().describe("Customer's codice fiscale (16 characters), required as additional identity verification for this sensitive operation — ask for it even if the customer is already authenticated")
   }),
   handler: async (ctx, params) => {
     try {
@@ -343,6 +408,38 @@ var request_card_unblock_default = import_schema.w.tool({
       if (accountStatus !== "blocked") {
         return { success: false, message: "The card does not appear to be blocked. No request needed." };
       }
+      const cfAttempts = ctx.kv.exists("unblock_cf_attempts") ? ctx.kv.get("unblock_cf_attempts") : 0;
+      if (cfAttempts >= 2) {
+        ctx.agent.sendSystemMessage("Customer failed the codice fiscale step-up verification twice during an unblock request. Offer escalation to a human agent.");
+        return { success: false, locked: true, message: "Identity verification failed too many times. For the security of your account, I am transferring you to an agent." };
+      }
+      let storedCfRaw = null;
+      try {
+        const customerCheck = await ctx.tables.filter("customers", [
+          { column: "customer_id", operator: "eq", value: customerId }
+        ], 1);
+        storedCfRaw = customerCheck.rows[0]?.data?.codice_fiscale ?? null;
+      } catch (filterErr) {
+        console.error("request-card-unblock: filter on customers failed:", filterErr);
+      }
+      if (storedCfRaw === null) {
+        ctx.agent.sendSystemMessage(
+          "request-card-unblock: could not read codice_fiscale from the customers table (check the table name, the codice_fiscale column, and whether the customer id matches the row id). Offer to retry or transfer to a human agent."
+        );
+        return { success: false, message: "A technical error occurred during the identity verification. Please try again in a moment." };
+      }
+      const storedCf = storedCfRaw.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      const providedCf = params.codice_fiscale.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (!storedCf || storedCf !== providedCf) {
+        const newCfAttempts = cfAttempts + 1;
+        ctx.kv.set("unblock_cf_attempts", newCfAttempts);
+        if (newCfAttempts >= 2) {
+          ctx.agent.sendSystemMessage("Customer failed the codice fiscale step-up verification twice during an unblock request. Offer escalation to a human agent.");
+          return { success: false, locked: true, message: "The codice fiscale does not match our records. For the security of your account, I am transferring you to an agent." };
+        }
+        return { success: false, message: "The codice fiscale does not match our records. Please check it and try once more." };
+      }
+      ctx.kv.set("unblock_cf_attempts", 0);
       const apiUrl = ctx.globals.get("api_base_url");
       const rawSecret = ctx.secrets.get("WONDERFUL_SECRET_API_KEY");
       const apiKey = typeof rawSecret === "object" && rawSecret !== null ? rawSecret.value : rawSecret;
@@ -362,7 +459,9 @@ var request_card_unblock_default = import_schema.w.tool({
           customer_id: customerId,
           card_last_four: accountData.last_four ?? "****",
           block_reason: accountData.block_reason ?? "not specified",
-          customer_stated_reason: params.customer_stated_reason
+          customer_stated_reason: params.customer_stated_reason,
+          interaction_id: ctx.metadata.communication.id ?? null,
+          interaction_channel: ctx.metadata.communication.type ?? null
         })
       });
       if (!caseResponse.ok) {
@@ -377,12 +476,19 @@ var request_card_unblock_default = import_schema.w.tool({
         }
       } catch (_smsErr) {
       }
+      try {
+        ctx.metadata.attachTag("card_unblock");
+        ctx.metadata.attachTag("escalated_review");
+      } catch (_tagErr) {
+      }
       return {
         success: true,
         case_id: caseData.case_id,
-        message: `Request submitted to the security team (reference: ${caseData.case_id}). You will receive a response within 24 hours. An SMS confirmation has been sent.`
+        case_id_spelled: spellForVoice(String(caseData.case_id)),
+        message: `Request submitted to the security team (reference: ${caseData.case_id}). You will receive a response within 24 hours. An SMS confirmation has been sent. On voice, if the customer asks to hear the reference, read the case_id_spelled value verbatim.`
       };
     } catch (err) {
+      console.error("request-card-unblock unhandled error:", err);
       ctx.agent.sendSystemMessage("Unhandled error in request-card-unblock. Offer to transfer to a human agent.");
       return {
         success: false,

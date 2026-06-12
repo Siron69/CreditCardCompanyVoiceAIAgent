@@ -3,10 +3,11 @@ import { s, w } from "@wonderful/types/schema";
 export default w.tool({
   name: "authenticate-customer",
   description:
-    "Authenticates the customer by verifying the last 4 digits of their card and their Italian tax code (codice fiscale). Must be called before any operation requiring account access. Persists authentication state in KV for the duration of the session.",
+    "Authenticates the customer by verifying their first name, last name and the last 4 digits of their card. Must be called before any operation requiring account access. Persists authentication state in KV for the duration of the session.",
   params: s.object({
+    first_name: s.string().describe("Customer's first name"),
+    last_name: s.string().describe("Customer's last name"),
     last_four: s.string().describe("Last 4 digits of the customer's credit card"),
-    codice_fiscale: s.string().describe("Customer's Italian tax code (codice fiscale, 16 characters)"),
   }),
   handler: async (ctx, params) => {
     try {
@@ -25,6 +26,7 @@ export default w.tool({
 
     const failedAttempts = ctx.kv.exists("auth_failed_attempts") ? (ctx.kv.get("auth_failed_attempts") as number) : 0;
     if (failedAttempts >= 3) {
+      try { ctx.metadata.attachTag("auth_failed"); } catch (_tagErr) { /* tag may not exist yet */ }
       ctx.agent.sendSystemMessage(
         "Customer has exceeded the maximum number of authentication attempts. Offer escalation to a human agent."
       );
@@ -45,8 +47,9 @@ export default w.tool({
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": apiKey },
       body: JSON.stringify({
+        first_name: params.first_name.trim().toLowerCase(),
+        last_name: params.last_name.trim().toLowerCase(),
         last_four: params.last_four.trim(),
-        codice_fiscale: params.codice_fiscale.trim().toUpperCase(),
       }),
     });
 
@@ -63,6 +66,7 @@ export default w.tool({
       const remainingAttempts = 3 - newFailedAttempts;
 
       if (remainingAttempts === 0) {
+        try { ctx.metadata.attachTag("auth_failed"); } catch (_tagErr) { /* tag may not exist yet */ }
         ctx.agent.sendSystemMessage("Last attempt failed. Offer escalation to a human agent.");
         return {
           success: false,

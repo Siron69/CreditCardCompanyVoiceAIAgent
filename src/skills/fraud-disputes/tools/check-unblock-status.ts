@@ -1,4 +1,5 @@
 import { s, w } from "@wonderful/types/schema";
+import { spellForVoice } from "../../../lib/voice-spelling";
 
 export default w.tool({
   name: "check-unblock-status",
@@ -9,7 +10,7 @@ export default w.tool({
   }),
   handler: async (ctx, params) => {
     try {
-    const caseId = params.case_id ?? (ctx.kv.exists("unblock_case_id") ? (ctx.kv.get("unblock_case_id") as string) : null);
+    let caseId = params.case_id ?? (ctx.kv.exists("unblock_case_id") ? (ctx.kv.get("unblock_case_id") as string) : null);
 
     let status: string | null = null;
     let reviewerNotes: string | null = null;
@@ -55,6 +56,7 @@ export default w.tool({
       const row = result.rows[0].data;
       status = row.status ?? null;
       reviewerNotes = row.reviewer_notes ?? null;
+      caseId = (row.case_id ?? result.rows[0].id) as string;
     }
 
     const messages: Record<string, string> = {
@@ -63,7 +65,14 @@ export default w.tool({
       denied: `Your request was not approved.${reviewerNotes ? ` Note: ${reviewerNotes}` : ""} For assistance you can speak with an agent.`,
     };
 
-    return { success: true, status, reviewer_notes: reviewerNotes, message: (status && messages[status]) || "Status unrecognised. Please contact support." };
+    return {
+      success: true,
+      status,
+      reviewer_notes: reviewerNotes,
+      case_id: caseId,
+      case_id_spelled: caseId ? spellForVoice(String(caseId)) : null,
+      message: (status && messages[status]) || "Status unrecognised. Please contact support.",
+    };
     } catch (err) {
       ctx.agent.sendSystemMessage("Unhandled error in check-unblock-status. Offer to transfer to a human agent.");
       return {

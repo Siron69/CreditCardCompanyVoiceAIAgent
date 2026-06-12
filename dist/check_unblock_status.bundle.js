@@ -5,7 +5,11 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -327,6 +331,66 @@ var require_schema = __commonJS({
 
 // src/skills/fraud-disputes/tools/check-unblock-status.ts
 var import_schema = __toESM(require_schema());
+
+// src/lib/voice-spelling.ts
+var LETTER_NAMES = {
+  a: "a",
+  b: "bi",
+  c: "ci",
+  d: "di",
+  e: "e",
+  f: "effe",
+  g: "gi",
+  h: "acca",
+  i: "i",
+  j: "i lunga",
+  k: "kappa",
+  l: "elle",
+  m: "emme",
+  n: "enne",
+  o: "o",
+  p: "pi",
+  q: "cu",
+  r: "erre",
+  s: "esse",
+  t: "ti",
+  u: "u",
+  v: "vu",
+  w: "doppia vu",
+  x: "ics",
+  y: "ipsilon",
+  z: "zeta"
+};
+var DIGIT_NAMES = ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove"];
+function spellForVoice(code, groupSize = 4) {
+  const parts = [];
+  let currentGroup = [];
+  const flush = () => {
+    if (currentGroup.length > 0) {
+      parts.push(currentGroup.join(" "));
+      currentGroup = [];
+    }
+  };
+  for (const ch of code) {
+    const lower = ch.toLowerCase();
+    if (LETTER_NAMES[lower]) {
+      currentGroup.push(LETTER_NAMES[lower]);
+    } else if (/\d/.test(ch)) {
+      currentGroup.push(DIGIT_NAMES[Number(ch)]);
+    } else if (ch === "_" || ch === "-") {
+      flush();
+      parts.push(ch === "_" ? "trattino basso" : "trattino");
+      continue;
+    } else {
+      continue;
+    }
+    if (currentGroup.length === groupSize) flush();
+  }
+  flush();
+  return parts.join(", ");
+}
+
+// src/skills/fraud-disputes/tools/check-unblock-status.ts
 var check_unblock_status_default = import_schema.w.tool({
   name: "check-unblock-status",
   description: "Checks the status of a previously submitted card unblock request. If no case ID is provided, looks up the most recent request of the authenticated customer.",
@@ -335,7 +399,7 @@ var check_unblock_status_default = import_schema.w.tool({
   }),
   handler: async (ctx, params) => {
     try {
-      const caseId = params.case_id ?? (ctx.kv.exists("unblock_case_id") ? ctx.kv.get("unblock_case_id") : null);
+      let caseId = params.case_id ?? (ctx.kv.exists("unblock_case_id") ? ctx.kv.get("unblock_case_id") : null);
       let status = null;
       let reviewerNotes = null;
       if (caseId) {
@@ -367,13 +431,21 @@ var check_unblock_status_default = import_schema.w.tool({
         const row = result.rows[0].data;
         status = row.status ?? null;
         reviewerNotes = row.reviewer_notes ?? null;
+        caseId = row.case_id ?? result.rows[0].id;
       }
       const messages = {
         pending: "Your request is still under review. We will contact you within 24 business hours.",
         approved: "Great news! Your request has been approved. Your card is now active.",
         denied: `Your request was not approved.${reviewerNotes ? ` Note: ${reviewerNotes}` : ""} For assistance you can speak with an agent.`
       };
-      return { success: true, status, reviewer_notes: reviewerNotes, message: status && messages[status] || "Status unrecognised. Please contact support." };
+      return {
+        success: true,
+        status,
+        reviewer_notes: reviewerNotes,
+        case_id: caseId,
+        case_id_spelled: caseId ? spellForVoice(String(caseId)) : null,
+        message: status && messages[status] || "Status unrecognised. Please contact support."
+      };
     } catch (err) {
       ctx.agent.sendSystemMessage("Unhandled error in check-unblock-status. Offer to transfer to a human agent.");
       return {

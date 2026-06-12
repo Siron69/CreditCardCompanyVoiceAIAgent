@@ -5,13 +5,23 @@
       "imports": [],
       "format": "cjs"
     },
+    "src/lib/voice-spelling.ts": {
+      "bytes": 1665,
+      "imports": [],
+      "format": "esm"
+    },
     "src/skills/fraud-disputes/tools/request-card-unblock.ts": {
-      "bytes": 3532,
+      "bytes": 7060,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
           "kind": "import-statement",
           "original": "@wonderful/types/schema"
+        },
+        {
+          "path": "src/lib/voice-spelling.ts",
+          "kind": "import-statement",
+          "original": "../../../lib/voice-spelling"
         }
       ],
       "format": "esm"
@@ -38,13 +48,16 @@
           "bytesInOutput": 8736
         },
         "src/skills/fraud-disputes/tools/request-card-unblock.ts": {
-          "bytesInOutput": 3330
+          "bytesInOutput": 6300
+        },
+        "src/lib/voice-spelling.ts": {
+          "bytesInOutput": 1160
         },
         "dist/__request_card_unblock_wrapper.ts": {
           "bytesInOutput": 179
         }
       },
-      "bytes": 13717
+      "bytes": 17989
     }
   }
 }

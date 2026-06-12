@@ -6,7 +6,7 @@
       "format": "cjs"
     },
     "src/tools/authenticate-customer.ts": {
-      "bytes": 4601,
+      "bytes": 4861,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -39,7 +39,7 @@
       "format": "esm"
     },
     "src/skills/account-servicing/tools/update-contact.ts": {
-      "bytes": 2087,
+      "bytes": 3879,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -91,24 +91,39 @@
       ],
       "format": "esm"
     },
+    "src/lib/voice-spelling.ts": {
+      "bytes": 1665,
+      "imports": [],
+      "format": "esm"
+    },
     "src/skills/fraud-disputes/tools/request-card-unblock.ts": {
-      "bytes": 3532,
+      "bytes": 7060,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
           "kind": "import-statement",
           "original": "@wonderful/types/schema"
+        },
+        {
+          "path": "src/lib/voice-spelling.ts",
+          "kind": "import-statement",
+          "original": "../../../lib/voice-spelling"
         }
       ],
       "format": "esm"
     },
     "src/skills/fraud-disputes/tools/check-unblock-status.ts": {
-      "bytes": 3421,
+      "bytes": 3663,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
           "kind": "import-statement",
           "original": "@wonderful/types/schema"
+        },
+        {
+          "path": "src/lib/voice-spelling.ts",
+          "kind": "import-statement",
+          "original": "../../../lib/voice-spelling"
         }
       ],
       "format": "esm"
@@ -278,7 +293,7 @@
           "bytesInOutput": 437
         },
         "src/tools/authenticate-customer.ts": {
-          "bytesInOutput": 4714
+          "bytesInOutput": 4996
         },
         "src/skills/account-servicing/tools/get-account-info.ts": {
           "bytesInOutput": 1589
@@ -287,7 +302,7 @@
           "bytesInOutput": 1960
         },
         "src/skills/account-servicing/tools/update-contact.ts": {
-          "bytesInOutput": 2158
+          "bytesInOutput": 3652
         },
         "src/skills/fraud-disputes/index.ts": {
           "bytesInOutput": 456
@@ -296,10 +311,13 @@
           "bytesInOutput": 2288
         },
         "src/skills/fraud-disputes/tools/request-card-unblock.ts": {
-          "bytesInOutput": 3334
+          "bytesInOutput": 6305
+        },
+        "src/lib/voice-spelling.ts": {
+          "bytesInOutput": 1160
         },
         "src/skills/fraud-disputes/tools/check-unblock-status.ts": {
-          "bytesInOutput": 3150
+          "bytesInOutput": 3334
         },
         "src/skills/fraud-disputes/tools/report-suspicious-transaction.ts": {
           "bytesInOutput": 2041
@@ -320,7 +338,7 @@
           "bytesInOutput": 10164
         }
       },
-      "bytes": 50501
+      "bytes": 56734
     }
   }
 }

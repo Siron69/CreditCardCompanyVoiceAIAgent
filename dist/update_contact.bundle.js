@@ -5,7 +5,11 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -332,7 +336,7 @@ var update_contact_default = import_schema.w.tool({
   description: "Updates the authenticated customer's email address or phone number.",
   params: import_schema.s.object({
     email: import_schema.s.optional(import_schema.s.string()).describe("New email address"),
-    phone: import_schema.s.optional(import_schema.s.string()).describe("New Italian phone number (e.g. +39 333 1234567)")
+    phone: import_schema.s.optional(import_schema.s.string()).describe("New phone number. Will be normalized to E.164 (+39 assumed for numbers without a country prefix), e.g. +393331234567")
   }),
   handler: async (ctx, params) => {
     try {
@@ -346,17 +350,47 @@ var update_contact_default = import_schema.w.tool({
       const apiUrl = ctx.globals.get("api_base_url");
       const rawSecret = ctx.secrets.get("WONDERFUL_SECRET_API_KEY");
       const apiKey = typeof rawSecret === "object" && rawSecret !== null ? rawSecret.value : rawSecret;
+      const newEmail = params.email?.trim() ?? null;
+      let newPhone = params.phone?.trim() ?? null;
+      if (newPhone) {
+        newPhone = newPhone.replace(/[^\d+]/g, "");
+        if (newPhone.startsWith("00")) newPhone = "+" + newPhone.slice(2);
+        if (!newPhone.startsWith("+")) newPhone = "+39" + newPhone;
+        if (!/^\+\d{7,15}$/.test(newPhone)) {
+          return { success: false, message: "The phone number does not look valid. Please dictate it again, digit by digit." };
+        }
+      }
       const response = await fetch(`${apiUrl}/updatecontactinfo`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-        body: JSON.stringify({ customer_id: customerId, email: params.email ?? null, phone: params.phone ?? null })
+        body: JSON.stringify({ customer_id: customerId, email: newEmail, phone: newPhone })
       });
       if (!response.ok) {
         return { success: false, message: "Error updating contact info. Please try again or contact support." };
       }
+      try {
+        const check = await ctx.tables.filter("customers", [
+          { column: "customer_id", operator: "eq", value: customerId }
+        ], 1);
+        const row = check.rows[0]?.data;
+        const rowFound = check.rows.length > 0;
+        const emailPersisted = !newEmail || row?.email === newEmail;
+        const phonePersisted = !newPhone || row?.phone === newPhone;
+        if (rowFound && (!emailPersisted || !phonePersisted)) {
+          ctx.agent.sendSystemMessage(
+            "update-contact: the updatecontactinfo API function returned OK but the customers row was not updated. Check the function on the dashboard."
+          );
+          return { success: false, message: "The update could not be saved in our systems. Please try again later, or I can transfer you to an agent." };
+        }
+      } catch (_verifyErr) {
+      }
+      try {
+        ctx.metadata.attachTag("contact_update");
+      } catch (_tagErr) {
+      }
       const updated = [];
-      if (params.email) updated.push(`email: ${params.email}`);
-      if (params.phone) updated.push(`phone: ${params.phone}`);
+      if (newEmail) updated.push(`email: ${newEmail}`);
+      if (newPhone) updated.push(`phone: ${newPhone}`);
       return { success: true, message: `Contact info updated successfully: ${updated.join(", ")}.` };
     } catch (err) {
       ctx.agent.sendSystemMessage("Unhandled error in update-contact. Offer to transfer to a human agent.");

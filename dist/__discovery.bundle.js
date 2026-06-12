@@ -5,7 +5,11 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
 };
 var __export = (target, all) => {
   for (var name in all)
@@ -343,10 +347,11 @@ var import_schema5 = __toESM(require_schema());
 var import_schema = __toESM(require_schema());
 var authenticate_customer_default = import_schema.w.tool({
   name: "authenticate-customer",
-  description: "Authenticates the customer by verifying the last 4 digits of their card and their Italian tax code (codice fiscale). Must be called before any operation requiring account access. Persists authentication state in KV for the duration of the session.",
+  description: "Authenticates the customer by verifying their first name, last name and the last 4 digits of their card. Must be called before any operation requiring account access. Persists authentication state in KV for the duration of the session.",
   params: import_schema.s.object({
-    last_four: import_schema.s.string().describe("Last 4 digits of the customer's credit card"),
-    codice_fiscale: import_schema.s.string().describe("Customer's Italian tax code (codice fiscale, 16 characters)")
+    first_name: import_schema.s.string().describe("Customer's first name"),
+    last_name: import_schema.s.string().describe("Customer's last name"),
+    last_four: import_schema.s.string().describe("Last 4 digits of the customer's credit card")
   }),
   handler: async (ctx, params) => {
     try {
@@ -364,6 +369,10 @@ var authenticate_customer_default = import_schema.w.tool({
       }
       const failedAttempts = ctx.kv.exists("auth_failed_attempts") ? ctx.kv.get("auth_failed_attempts") : 0;
       if (failedAttempts >= 3) {
+        try {
+          ctx.metadata.attachTag("auth_failed");
+        } catch (_tagErr) {
+        }
         ctx.agent.sendSystemMessage(
           "Customer has exceeded the maximum number of authentication attempts. Offer escalation to a human agent."
         );
@@ -380,8 +389,9 @@ var authenticate_customer_default = import_schema.w.tool({
         method: "POST",
         headers: { "Content-Type": "application/json", "x-api-key": apiKey },
         body: JSON.stringify({
-          last_four: params.last_four.trim(),
-          codice_fiscale: params.codice_fiscale.trim().toUpperCase()
+          first_name: params.first_name.trim().toLowerCase(),
+          last_name: params.last_name.trim().toLowerCase(),
+          last_four: params.last_four.trim()
         })
       });
       if (!response.ok) {
@@ -394,6 +404,10 @@ var authenticate_customer_default = import_schema.w.tool({
         ctx.kv.set("auth_failed_attempts", newFailedAttempts);
         const remainingAttempts = 3 - newFailedAttempts;
         if (remainingAttempts === 0) {
+          try {
+            ctx.metadata.attachTag("auth_failed");
+          } catch (_tagErr) {
+          }
           ctx.agent.sendSystemMessage("Last attempt failed. Offer escalation to a human agent.");
           return {
             success: false,
@@ -519,7 +533,7 @@ var update_contact_default = import_schema4.w.tool({
   description: "Updates the authenticated customer's email address or phone number.",
   params: import_schema4.s.object({
     email: import_schema4.s.optional(import_schema4.s.string()).describe("New email address"),
-    phone: import_schema4.s.optional(import_schema4.s.string()).describe("New Italian phone number (e.g. +39 333 1234567)")
+    phone: import_schema4.s.optional(import_schema4.s.string()).describe("New phone number. Will be normalized to E.164 (+39 assumed for numbers without a country prefix), e.g. +393331234567")
   }),
   handler: async (ctx, params) => {
     try {
@@ -533,17 +547,47 @@ var update_contact_default = import_schema4.w.tool({
       const apiUrl = ctx.globals.get("api_base_url");
       const rawSecret = ctx.secrets.get("WONDERFUL_SECRET_API_KEY");
       const apiKey = typeof rawSecret === "object" && rawSecret !== null ? rawSecret.value : rawSecret;
+      const newEmail = params.email?.trim() ?? null;
+      let newPhone = params.phone?.trim() ?? null;
+      if (newPhone) {
+        newPhone = newPhone.replace(/[^\d+]/g, "");
+        if (newPhone.startsWith("00")) newPhone = "+" + newPhone.slice(2);
+        if (!newPhone.startsWith("+")) newPhone = "+39" + newPhone;
+        if (!/^\+\d{7,15}$/.test(newPhone)) {
+          return { success: false, message: "The phone number does not look valid. Please dictate it again, digit by digit." };
+        }
+      }
       const response = await fetch(`${apiUrl}/updatecontactinfo`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-        body: JSON.stringify({ customer_id: customerId, email: params.email ?? null, phone: params.phone ?? null })
+        body: JSON.stringify({ customer_id: customerId, email: newEmail, phone: newPhone })
       });
       if (!response.ok) {
         return { success: false, message: "Error updating contact info. Please try again or contact support." };
       }
+      try {
+        const check = await ctx.tables.filter("customers", [
+          { column: "customer_id", operator: "eq", value: customerId }
+        ], 1);
+        const row = check.rows[0]?.data;
+        const rowFound = check.rows.length > 0;
+        const emailPersisted = !newEmail || row?.email === newEmail;
+        const phonePersisted = !newPhone || row?.phone === newPhone;
+        if (rowFound && (!emailPersisted || !phonePersisted)) {
+          ctx.agent.sendSystemMessage(
+            "update-contact: the updatecontactinfo API function returned OK but the customers row was not updated. Check the function on the dashboard."
+          );
+          return { success: false, message: "The update could not be saved in our systems. Please try again later, or I can transfer you to an agent." };
+        }
+      } catch (_verifyErr) {
+      }
+      try {
+        ctx.metadata.attachTag("contact_update");
+      } catch (_tagErr) {
+      }
       const updated = [];
-      if (params.email) updated.push(`email: ${params.email}`);
-      if (params.phone) updated.push(`phone: ${params.phone}`);
+      if (newEmail) updated.push(`email: ${newEmail}`);
+      if (newPhone) updated.push(`phone: ${newPhone}`);
       return { success: true, message: `Contact info updated successfully: ${updated.join(", ")}.` };
     } catch (err) {
       ctx.agent.sendSystemMessage("Unhandled error in update-contact. Offer to transfer to a human agent.");
@@ -617,11 +661,72 @@ var block_card_default = import_schema6.w.tool({
 
 // src/skills/fraud-disputes/tools/request-card-unblock.ts
 var import_schema7 = __toESM(require_schema());
+
+// src/lib/voice-spelling.ts
+var LETTER_NAMES = {
+  a: "a",
+  b: "bi",
+  c: "ci",
+  d: "di",
+  e: "e",
+  f: "effe",
+  g: "gi",
+  h: "acca",
+  i: "i",
+  j: "i lunga",
+  k: "kappa",
+  l: "elle",
+  m: "emme",
+  n: "enne",
+  o: "o",
+  p: "pi",
+  q: "cu",
+  r: "erre",
+  s: "esse",
+  t: "ti",
+  u: "u",
+  v: "vu",
+  w: "doppia vu",
+  x: "ics",
+  y: "ipsilon",
+  z: "zeta"
+};
+var DIGIT_NAMES = ["zero", "uno", "due", "tre", "quattro", "cinque", "sei", "sette", "otto", "nove"];
+function spellForVoice(code, groupSize = 4) {
+  const parts = [];
+  let currentGroup = [];
+  const flush = () => {
+    if (currentGroup.length > 0) {
+      parts.push(currentGroup.join(" "));
+      currentGroup = [];
+    }
+  };
+  for (const ch of code) {
+    const lower = ch.toLowerCase();
+    if (LETTER_NAMES[lower]) {
+      currentGroup.push(LETTER_NAMES[lower]);
+    } else if (/\d/.test(ch)) {
+      currentGroup.push(DIGIT_NAMES[Number(ch)]);
+    } else if (ch === "_" || ch === "-") {
+      flush();
+      parts.push(ch === "_" ? "trattino basso" : "trattino");
+      continue;
+    } else {
+      continue;
+    }
+    if (currentGroup.length === groupSize) flush();
+  }
+  flush();
+  return parts.join(", ");
+}
+
+// src/skills/fraud-disputes/tools/request-card-unblock.ts
 var request_card_unblock_default = import_schema7.w.tool({
   name: "request-card-unblock",
   description: "Submits a card unblock request to the external review platform. Does NOT unblock automatically — the decision is made by a human reviewer.",
   params: import_schema7.s.object({
-    customer_stated_reason: import_schema7.s.string().describe("The reason stated by the customer for requesting the unblock")
+    customer_stated_reason: import_schema7.s.string().describe("The reason stated by the customer for requesting the unblock"),
+    codice_fiscale: import_schema7.s.string().describe("Customer's codice fiscale (16 characters), required as additional identity verification for this sensitive operation — ask for it even if the customer is already authenticated")
   }),
   handler: async (ctx, params) => {
     try {
@@ -633,6 +738,38 @@ var request_card_unblock_default = import_schema7.w.tool({
       if (accountStatus !== "blocked") {
         return { success: false, message: "The card does not appear to be blocked. No request needed." };
       }
+      const cfAttempts = ctx.kv.exists("unblock_cf_attempts") ? ctx.kv.get("unblock_cf_attempts") : 0;
+      if (cfAttempts >= 2) {
+        ctx.agent.sendSystemMessage("Customer failed the codice fiscale step-up verification twice during an unblock request. Offer escalation to a human agent.");
+        return { success: false, locked: true, message: "Identity verification failed too many times. For the security of your account, I am transferring you to an agent." };
+      }
+      let storedCfRaw = null;
+      try {
+        const customerCheck = await ctx.tables.filter("customers", [
+          { column: "customer_id", operator: "eq", value: customerId }
+        ], 1);
+        storedCfRaw = customerCheck.rows[0]?.data?.codice_fiscale ?? null;
+      } catch (filterErr) {
+        console.error("request-card-unblock: filter on customers failed:", filterErr);
+      }
+      if (storedCfRaw === null) {
+        ctx.agent.sendSystemMessage(
+          "request-card-unblock: could not read codice_fiscale from the customers table (check the table name, the codice_fiscale column, and whether the customer id matches the row id). Offer to retry or transfer to a human agent."
+        );
+        return { success: false, message: "A technical error occurred during the identity verification. Please try again in a moment." };
+      }
+      const storedCf = storedCfRaw.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      const providedCf = params.codice_fiscale.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (!storedCf || storedCf !== providedCf) {
+        const newCfAttempts = cfAttempts + 1;
+        ctx.kv.set("unblock_cf_attempts", newCfAttempts);
+        if (newCfAttempts >= 2) {
+          ctx.agent.sendSystemMessage("Customer failed the codice fiscale step-up verification twice during an unblock request. Offer escalation to a human agent.");
+          return { success: false, locked: true, message: "The codice fiscale does not match our records. For the security of your account, I am transferring you to an agent." };
+        }
+        return { success: false, message: "The codice fiscale does not match our records. Please check it and try once more." };
+      }
+      ctx.kv.set("unblock_cf_attempts", 0);
       const apiUrl = ctx.globals.get("api_base_url");
       const rawSecret = ctx.secrets.get("WONDERFUL_SECRET_API_KEY");
       const apiKey = typeof rawSecret === "object" && rawSecret !== null ? rawSecret.value : rawSecret;
@@ -652,7 +789,9 @@ var request_card_unblock_default = import_schema7.w.tool({
           customer_id: customerId,
           card_last_four: accountData.last_four ?? "****",
           block_reason: accountData.block_reason ?? "not specified",
-          customer_stated_reason: params.customer_stated_reason
+          customer_stated_reason: params.customer_stated_reason,
+          interaction_id: ctx.metadata.communication.id ?? null,
+          interaction_channel: ctx.metadata.communication.type ?? null
         })
       });
       if (!caseResponse.ok) {
@@ -667,12 +806,19 @@ var request_card_unblock_default = import_schema7.w.tool({
         }
       } catch (_smsErr) {
       }
+      try {
+        ctx.metadata.attachTag("card_unblock");
+        ctx.metadata.attachTag("escalated_review");
+      } catch (_tagErr) {
+      }
       return {
         success: true,
         case_id: caseData.case_id,
-        message: `Request submitted to the security team (reference: ${caseData.case_id}). You will receive a response within 24 hours. An SMS confirmation has been sent.`
+        case_id_spelled: spellForVoice(String(caseData.case_id)),
+        message: `Request submitted to the security team (reference: ${caseData.case_id}). You will receive a response within 24 hours. An SMS confirmation has been sent. On voice, if the customer asks to hear the reference, read the case_id_spelled value verbatim.`
       };
     } catch (err) {
+      console.error("request-card-unblock unhandled error:", err);
       ctx.agent.sendSystemMessage("Unhandled error in request-card-unblock. Offer to transfer to a human agent.");
       return {
         success: false,
@@ -692,7 +838,7 @@ var check_unblock_status_default = import_schema8.w.tool({
   }),
   handler: async (ctx, params) => {
     try {
-      const caseId = params.case_id ?? (ctx.kv.exists("unblock_case_id") ? ctx.kv.get("unblock_case_id") : null);
+      let caseId = params.case_id ?? (ctx.kv.exists("unblock_case_id") ? ctx.kv.get("unblock_case_id") : null);
       let status = null;
       let reviewerNotes = null;
       if (caseId) {
@@ -724,13 +870,21 @@ var check_unblock_status_default = import_schema8.w.tool({
         const row = result.rows[0].data;
         status = row.status ?? null;
         reviewerNotes = row.reviewer_notes ?? null;
+        caseId = row.case_id ?? result.rows[0].id;
       }
       const messages = {
         pending: "Your request is still under review. We will contact you within 24 business hours.",
         approved: "Great news! Your request has been approved. Your card is now active.",
         denied: `Your request was not approved.${reviewerNotes ? ` Note: ${reviewerNotes}` : ""} For assistance you can speak with an agent.`
       };
-      return { success: true, status, reviewer_notes: reviewerNotes, message: status && messages[status] || "Status unrecognised. Please contact support." };
+      return {
+        success: true,
+        status,
+        reviewer_notes: reviewerNotes,
+        case_id: caseId,
+        case_id_spelled: caseId ? spellForVoice(String(caseId)) : null,
+        message: status && messages[status] || "Status unrecognised. Please contact support."
+      };
     } catch (err) {
       ctx.agent.sendSystemMessage("Unhandled error in check-unblock-status. Offer to transfer to a human agent.");
       return {

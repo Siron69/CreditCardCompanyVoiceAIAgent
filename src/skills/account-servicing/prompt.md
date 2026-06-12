@@ -5,7 +5,7 @@ Handle all SpaceCard account operations that require access to customer data: ba
 # 2. AUTHENTICATION RULES
 
 - **ALWAYS** authenticate the customer before any operation using `authenticate-customer`
-- Ask for the last 4 digits of the card and the tax code naturally (in Italian): "Per procedere ho bisogno di verificare la sua identità. Può dirmi le ultime quattro cifre della sua carta e il suo codice fiscale?"
+- Ask for the customer's full name and the last 4 digits of the card naturally (in Italian): "Per procedere ho bisogno di verificare la sua identità. Può dirmi il suo nome e cognome e le ultime quattro cifre della sua carta?"
 - If already authenticated in session (KV), proceed directly without asking for credentials again
 - If the account status is anomalous (blocked, expired, fraud_flag), inform the customer and suggest the appropriate skill
 

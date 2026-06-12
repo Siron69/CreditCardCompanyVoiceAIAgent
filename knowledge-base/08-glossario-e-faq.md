@@ -14,7 +14,7 @@
 - **PIN:** il codice segreto a 5 cifre per pagamenti in negozio e prelievi
 - **Chargeback (disputa):** la procedura per contestare una transazione e chiederne il rimborso
 - **Contactless:** pagamento avvicinando la carta al POS, senza PIN sotto i 50 €
-- **Codice fiscale:** il codice alfanumerico personale usato anche per la verifica dell'identità del cliente
+- **Codice fiscale:** il codice alfanumerico personale richiesto in fase di richiesta della carta
 
 ## Domande frequenti
 
@@ -43,4 +43,4 @@ Puoi richiedere la ristampa del PIN tramite l'assistenza: arriva per posta entro
 Puoi recedere in qualsiasi momento senza penali, dopo aver saldato il dovuto. Ricorda di riscattare i punti rewards residui prima della chiusura.
 
 **La chiamata con l'assistente vocale è sicura?**
-Sì. L'assistente chiede solo le ultime 4 cifre della carta e il codice fiscale per la verifica. Non chiede mai PIN, CVV o il numero completo della carta.
+Sì. L'assistente chiede solo nome, cognome e le ultime 4 cifre della carta per la verifica. Non chiede mai PIN, CVV, codice fiscale o il numero completo della carta.

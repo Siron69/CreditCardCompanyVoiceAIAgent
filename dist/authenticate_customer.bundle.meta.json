@@ -6,7 +6,7 @@
       "format": "cjs"
     },
     "src/tools/authenticate-customer.ts": {
-      "bytes": 4601,
+      "bytes": 4861,
       "imports": [
         {
           "path": "node_modules/@wonderful/types/dist/schema.js",
@@ -38,13 +38,13 @@
           "bytesInOutput": 8736
         },
         "src/tools/authenticate-customer.ts": {
-          "bytesInOutput": 4714
+          "bytesInOutput": 4996
         },
         "dist/__authenticate_customer_wrapper.ts": {
           "bytesInOutput": 180
         }
       },
-      "bytes": 15082
+      "bytes": 15416
     }
   }
 }
