@@ -1,111 +1,201 @@
-<mxfile host="app.diagrams.net" type="device">
-  <diagram id="arch" name="Architecture">
-    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        <mxCell id="cust" value="Customer" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="40" y="320" width="60" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="channels" value="Channels&#10;Voice (STT Deepgram / TTS ElevenLabs + fallbacks)&#10;SMS · Chat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;" vertex="1" parent="1">
-          <mxGeometry x="150" y="310" width="220" height="100" as="geometry" />
-        </mxCell>
-        <mxCell id="agent" value="SpaceCard Agent&#10;(Italian-only · 7-section prompt · guardrails · escalation)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="430" y="310" width="250" height="100" as="geometry" />
-        </mxCell>
-        <mxCell id="kb" value="Knowledge Base (agent-level)&#10;8 Italian docs: products, fees, rates,&#10;rewards, fraud policy, disputes, FAQ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="430" y="150" width="250" height="90" as="geometry" />
-        </mxCell>
-        <mxCell id="auth" value="authenticate-customer&#10;(shared flow-based tool, KV session state,&#10;3-attempt lockout)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="430" y="470" width="250" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="sk1" value="Skill: account-servicing&#10;get-account-info&#10;get-transactions&#10;update-contact" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=8;" vertex="1" parent="1">
-          <mxGeometry x="760" y="120" width="200" height="100" as="geometry" />
-        </mxCell>
-        <mxCell id="sk2" value="Skill: fraud-disputes&#10;block-card&#10;request-card-unblock&#10;check-unblock-status&#10;report-suspicious-transaction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=8;" vertex="1" parent="1">
-          <mxGeometry x="760" y="250" width="200" height="110" as="geometry" />
-        </mxCell>
-        <mxCell id="sk3" value="Skill: rewards-redemption&#10;get-rewards-balance&#10;get-rewards-catalog&#10;redeem-rewards (confirm flow)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=8;" vertex="1" parent="1">
-          <mxGeometry x="760" y="390" width="200" height="100" as="geometry" />
-        </mxCell>
-        <mxCell id="res" value="Wonderful Resources&#10;Tables: customers · transactions · card_products · rewards · rewards_catalog · card_unblock_cases&#10;API functions (x-api-key secret): getcustomerbyauth · getaccountinfo · gettransactions · updatecontactinfo · blockcard · getrewardsbalance · getrewardscatalog · redeemreward · createunblockcase · getunblockcasestatus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=8;" vertex="1" parent="1">
-          <mxGeometry x="430" y="610" width="530" height="120" as="geometry" />
-        </mxCell>
-        <mxCell id="app" value="CardUnblockApp (Apps tab)&#10;Review queue UI · approve / deny + notes&#10;listUnblockCases · decideUnblockCase&#10;audit: reviewed_by, resolved_at" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc99;strokeColor=#d79b00;align=left;spacingLeft=8;" vertex="1" parent="1">
-          <mxGeometry x="150" y="610" width="220" height="120" as="geometry" />
-        </mxCell>
-        <mxCell id="rev" value="Human reviewer" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="60" y="630" width="50" height="70" as="geometry" />
-        </mxCell>
-        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="cust" target="channels"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="channels" target="agent"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e3" value="native retrieval" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;" edge="1" parent="1" source="agent" target="kb"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e4" value="routing" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="agent" target="sk1"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e5" value="routing" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="agent" target="sk2"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e6" value="routing" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="agent" target="sk3"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="agent" target="auth"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e8" value="HTTPS + x-api-key / ctx.tables (SDK)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="sk2" target="res"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="sk1" target="res"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1030" y="170" /><mxPoint x="1030" y="670" /></Array></mxGeometry></mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="sk3" target="res"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="auth" target="res"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e12" value="reads/writes card_unblock_cases" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="app" target="res"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="rev" target="app"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e14" value="SMS confirmations" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;" edge="1" parent="1" source="agent" target="channels"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="400" y="290" /></Array></mxGeometry></mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
-  <diagram id="flows" name="Unblock flow (happy + error)">
-    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        <mxCell id="f1" value="Customer: &quot;La mia carta è bloccata, sbloccala&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="60" y="60" width="240" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="f2" value="Authenticated?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="360" y="50" width="160" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="f3" value="authenticate-customer&#10;(max 3 attempts)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="350" y="190" width="180" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="f4" value="3 failures → escalate to human&#10;(no data revealed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="350" y="300" width="180" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="f5" value="Explain human-review policy,&#10;collect customer's reason" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="590" y="50" width="200" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="f6" value="request-card-unblock&#10;→ createUnblockCase (API fn)&#10;→ case_id in KV → SMS ref" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="850" y="50" width="220" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="f7" value="card_unblock_cases&#10;status: pending" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="880" y="190" width="160" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="f8" value="Reviewer in CardUnblockApp&#10;approve / deny (+ notes,&#10;reviewed_by, resolved_at)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc99;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="850" y="330" width="220" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="f9" value="Customer calls back:&#10;&quot;È stata riattivata?&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="60" y="470" width="200" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="f10" value="check-unblock-status&#10;case_id known → getUnblockCaseStatus (API fn)&#10;else → ctx.tables.filter by customer (SDK)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="340" y="460" width="290" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="f11" value="Outcome to customer&#10;approved / denied (+ reviewer note) / pending" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="700" y="470" width="240" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="f12" value="Error path: any unhandled exception → apology + sendSystemMessage → human escalation. HTTP error → specific retry message. SMS failure → non-blocking." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=8;" vertex="1" parent="1">
-          <mxGeometry x="60" y="620" width="560" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="g1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="f1" target="f2"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="g2" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="f2" target="f3"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="g3" value="fail x3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="f3" target="f4"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="g4" value="yes / success" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="f2" target="f5"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="g5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="f5" target="f6"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="g6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="f6" target="f7"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="g7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="f7" target="f8"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="g8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="f9" target="f10"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="g9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="f10" target="f11"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="g10" value="decision" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;" edge="1" parent="1" source="f8" target="f10"><mxGeometry relative="1" as="geometry" /></mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
+<mxfile host="65bd71144e">
+    <diagram id="arch" name="1 · Architettura">
+        <mxGraphModel dx="1156" dy="627" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="760" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="p1_cliente" value="Cliente" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="410" y="30" width="50" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_canali" value="Canali&lt;br&gt;Voce · Chat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="355" y="140" width="160" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_agente" value="Agente SpaceCard&#xa;routing · guardrail · 100% italiano" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="245" width="230" height="75" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_account" value="Account&#xa;saldo · movimenti · contatti" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="380" width="185" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_frodi" value="Frodi &amp; Blocchi&#xa;blocco · sblocco · dispute" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="235" y="380" width="185" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_premi" value="Premi&#xa;punti · catalogo · riscatti" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="445" y="380" width="185" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_kb" value="Informazioni&#xa;Knowledge Base (RAG)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="655" y="380" width="185" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_resources" value="Wonderful Resources&#xa;tabelle dati + API functions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="530" width="600" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_app" value="CardUnblockApp&#xa;(Apps tab)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="655" y="530" width="185" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_reviewer" value="Operatore&#xa;sicurezza" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="722" y="640" width="50" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p1_cliente" target="p1_canali" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p1_canali" target="p1_agente" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p1_agente" target="p1_account" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p1_agente" target="p1_frodi" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p1_agente" target="p1_premi" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p1_agente" target="p1_kb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p1_account" target="p1_resources" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p1_frodi" target="p1_resources" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p1_premi" target="p1_resources" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e10" value="tabella condivisa" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=classic;endArrow=classic;fontSize=11;" parent="1" source="p1_app" target="p1_resources" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1_e11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p1_reviewer" target="p1_app" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="auth" name="2 · Flusso autenticazione">
+        <mxGraphModel dx="1156" dy="627" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="700" pageHeight="600" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="p2_start" value="Cliente: serve un&#39;operazione sul conto" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="250" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_ask" value="Agente chiede&#xa;nome, cognome, ultime 4 cifre" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="85" y="140" width="170" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_dec1" value="Dati&#xa;corretti?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="250" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_ok" value="Cliente autenticato" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="265" width="170" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_proceed" value="Procede con la richiesta&#xa;(saldo, movimenti...)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="350" width="170" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_dec2" value="Tentativi&#xa;&lt; 3?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="390" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_lock" value="3 tentativi falliti&#xa;trasferimento a operatore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="460" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_a1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p2_start" target="p2_ask" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_a2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p2_ask" target="p2_dec1" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_a3" value="sì" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=12;" parent="1" source="p2_dec1" target="p2_ok" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_a4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p2_ok" target="p2_proceed" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_a5" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=12;" parent="1" source="p2_dec1" target="p2_dec2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2_a6" value="sì · riprova" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=12;" parent="1" source="p2_dec2" target="p2_ask" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="40" y="430"/>
+                            <mxPoint x="40" y="170"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="p2_a7" value="no · 3 falliti" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=12;" parent="1" source="p2_dec2" target="p2_lock" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="unblock" name="3 · Flusso sblocco carta">
+        <mxGraphModel dx="1156" dy="627" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="780" pageHeight="720" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="p3_start" value="Cliente autenticato, carta bloccata:&#xa;&quot;sbloccatela&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="40" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_stepup" value="Step-up: agente chiede&#xa;il codice fiscale" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="65" y="150" width="170" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_dec" value="Codice&#xa;corretto?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="260" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_fail" value="2 errori&#xa;trasferimento a operatore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="270" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_create" value="Crea richiesta di sblocco&#xa;stato: in attesa" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="395" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_sms" value="SMS con riferimento&#xa;al cliente" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="490" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_table" value="card_unblock_cases" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="385" width="150" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_review" value="CardUnblockApp&#xa;operatore approva / nega" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="390" width="190" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_callback" value="Cliente richiama:&#xa;&quot;com&#39;è andata?&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="610" width="200" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_status" value="Verifica stato → approvata /&#xa;negata / in attesa" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="275" y="610" width="240" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_b1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p3_start" target="p3_stepup" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_b2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p3_stepup" target="p3_dec" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_b3" value="no · 2 errori" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=12;" parent="1" source="p3_dec" target="p3_fail" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_b4" value="sì" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=12;" parent="1" source="p3_dec" target="p3_create" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_b5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p3_create" target="p3_sms" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_b6" value="scrive caso" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=11;" parent="1" source="p3_create" target="p3_table" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_b7" value="review" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;fontSize=11;" parent="1" source="p3_table" target="p3_review" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_b8" value="decisione" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;fontSize=11;" parent="1" source="p3_review" target="p3_table" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="645" y="520"/>
+                            <mxPoint x="395" y="520"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="p3_b9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" parent="1" source="p3_callback" target="p3_status" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3_b10" value="legge stato" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;fontSize=11;" parent="1" source="p3_status" target="p3_table" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
 </mxfile>

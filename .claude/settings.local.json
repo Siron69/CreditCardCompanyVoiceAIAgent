@@ -8,7 +8,8 @@
       "Bash(rm -rf src/skills/knowledge-rag)",
       "Bash(ls dist/)",
       "Bash(find dist *)",
-      "PowerShell(wsl -e bash -ic \"cd ~/CreditCardCompanyVoiceAIAgent; which node; which wonderful; wonderful build --account src/account.ts --all\")"
+      "PowerShell(wsl -e bash -ic \"cd ~/CreditCardCompanyVoiceAIAgent; which node; which wonderful; wonderful build --account src/account.ts --all\")",
+      "Bash(wsl -e bash -lc \"rm -f ~/CreditCardCompanyVoiceAIAgent/.compare-prompts.sh && echo 'rimosso'\")"
     ]
   }
 }
